@@ -133,5 +133,8 @@ void resultsC::displayResults() {
   std::cout << "ICMP- Count: " << icmpCount << "   Min: " << icmpMin << "   Max: " << icmpMax << "   Avg: " << (icmpCount != 0 ? double(icmpSum) / double(icmpCount) : 0) << std::endl;
   std::cout << "Number of other transport packets: " << otherTransportCount << std::endl;
   std::cout << std::endl;
+  std::cout << "--------------- Part Two ----------------------" << std::endl;
+  std::cout << "Number of unique Source MAC Addresses: " << mac.size() << std::endl;
+  std::cout << "Number of unique Destinaction MAC Addresses: " << cheese.size() << std::endl;
   std::cout << "A total of " << totalPacketCount << " packets processed." << std::endl;
 }

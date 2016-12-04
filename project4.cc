@@ -19,7 +19,7 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   COUNT++;
   resultsC* results = (resultsC*)user;
   results->incrementPacketCount();
-
+  
   int len = 0;
   int tlen = 0;
   int ethernetHeaderLength = 0;
@@ -28,7 +28,7 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   int protocol = -1;
   int lenTypeSum; // length vs Type field sum
 
-
+  // Data Link Layer
   lenTypeSum = int(packet[12]) * 256 + int(packet[13]);
 
   if(lenTypeSum <= 1500){ // 802.3
@@ -50,7 +50,8 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
       }
     }
   }
-  
+
+  // Network Layer
   switch(etherType){
   case '4': //ipv4
     len = int(packet[ethernetHeaderLength + 2]) * 256 + int(packet[ethernetHeaderLength + 3]);
@@ -69,12 +70,13 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     break;
   }
 
+  // Transport Layer
 
   switch(protocol){
   case 0: //ARP
     break;
   case 1: //ICMP
-    tlen = 5;
+    tlen = len - 8;
     break;
   case 6: //TCP
     tlen = len - (int(packet[networkHeaderLength + 12]) - (int(packet[networkHeaderLength + 12]) % 16)) / 4;
@@ -83,7 +85,7 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     tlen = len - 8;
     break;
   case 58: //ipv6 ICMP
-    tlen = 8;
+    tlen = len - 8;
     break;
   }
 
@@ -126,10 +128,16 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     results->giveUDPLength(tlen);
     break;
   case 58:
-    results->giveICMPLength(tlen);
+    results->incrementOtherTransportCount();
     break;
   }
 
+  //Part Two
+
+  results->insertDestinationMAC(int(packet[0]) * pow(256, 5) + int(packet[1]) * pow(256,4) + int(packet[2]) * pow(256, 3) +int(packet[3]) * pow(256, 2) + int(packet[4]) * pow(256,1) + int(packet[5]));
+  results->insertSourceMAC(int(packet[6]) * pow(256, 5) + int(packet[7]) * pow(256,4) + int(packet[8]) * pow(256, 3) +int(packet[9]) * pow(256, 2) + int(packet[10]) * pow(256,1) + int(packet[11]));
+
+  
 
   return;
 }

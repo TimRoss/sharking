@@ -8,6 +8,8 @@
 
 #ifndef resultsC_h
 #define resultsC_h
+#include <set>
+#include <math.h>
 
 class resultsC {
   protected:
@@ -48,9 +50,16 @@ class resultsC {
    int icmpMin;
 
 
+   std::set<long double> mac; //source mac addresses
+   std::set<long double> cheese; //destination mac addresses
+
+
   public:
    resultsC();
    void incrementPacketCount() { totalPacketCount++; };
+   void insertSourceMAC(long cheese) { mac.insert(cheese); };
+   int getSize() { return cheese.size(); };
+   void insertDestinationMAC(long mac) { cheese.insert(mac); };
 
    //data link layer
    void incrementEthernetIICount() { ethernetIICount++; };
