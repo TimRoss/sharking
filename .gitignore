@@ -1,2 +1,5 @@
 *.o
 project4
+notes.ods
+.~*
+pcapFiles

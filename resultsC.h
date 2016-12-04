@@ -13,9 +13,41 @@ class resultsC {
   protected:
    int totalPacketCount;
 
+   //data link layer
+   int ethernetIICount;
+   int eightO2Point3Count;
+
+   //network layer
+   int iPv4Count;
+   int iPv6Count;
+   int arpCount;
+   int otherNetworkCount;
+   int iPv4Sum;
+   int iPv6Sum;
+   int arpSum;
+   int iPv4Min;
+   int iPv6Min;
+   int arpMin;
+   int iPv4Max;
+   int iPv6Max;
+   int arpMax;
+
+
   public:
    resultsC();
    void incrementPacketCount() { totalPacketCount++; };
+
+   //data link layer
+   void incrementEthernetIICount() { ethernetIICount++; };
+   void incrementEightO2Point3Count() { eightO2Point3Count++; };
+
+   //network layer
+   void incrementOtherNetworkCount() { otherNetworkCount++; };
+   void giveIPv4Length(int length);
+   void giveIPv6Length(int length);
+   void giveARPLength(int length);
+
+   
    void displayResults();
 };
 
