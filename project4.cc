@@ -7,7 +7,7 @@
 //
 
 #include "project4.h"
-
+int COUNT = 0;
 
 // ****************************************************************************
 // * pk_processor()
@@ -16,17 +16,16 @@
 // *  packet in the savefile.
 // ****************************************************************************
 void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *packet) {
-
+  COUNT++;
   resultsC* results = (resultsC*)user;
   results->incrementPacketCount();
 
-  int b12 = 0;
-  int b13 = 0;
   int len = 0;
   int tlen = 0;
-  int ethernetHeaderLength = 100;
+  int ethernetHeaderLength = 0;
+  int networkHeaderLength = 0;
   char etherType = 'o';
-  int protocol = 0;
+  int protocol = -1;
   int lenTypeSum; // length vs Type field sum
 
 
@@ -51,33 +50,39 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
       }
     }
   }
-
+  
   switch(etherType){
-  case '4':
+  case '4': //ipv4
     len = int(packet[ethernetHeaderLength + 2]) * 256 + int(packet[ethernetHeaderLength + 3]);
     protocol = int(packet[ethernetHeaderLength + 9]);
+    networkHeaderLength = ethernetHeaderLength + (int(packet[ethernetHeaderLength]) % 16);
     break;
-  case '6':
+  case '6': //ipv6
     len = int(packet[ethernetHeaderLength + 4]) * 256 + int(packet[ethernetHeaderLength + 5]);
-    protocol = int(packet[ethernetHeaderLength + 7]);
+    protocol = int(packet[ethernetHeaderLength + 6]);
+    networkHeaderLength = ethernetHeaderLength + 40;
     break;
-  case 'a':
+  case 'a': //arp
     len = 60;
-    protocol =17;
-    break; 
+    protocol = 0;
+    networkHeaderLength = ethernetHeaderLength + 28;
+    break;
   }
 
+
   switch(protocol){
-  case 1:
+  case 0: //ARP
+    break;
+  case 1: //ICMP
     tlen = 5;
     break;
-  case 6:
-    tlen = 6;
+  case 6: //TCP
+    tlen = len - (int(packet[networkHeaderLength + 12]) - (int(packet[networkHeaderLength + 12]) % 16)) / 4;
     break;
-  case 17:
-    tlen = 7;
+  case 17: //UDP
+    tlen = len - 8;
     break;
-  case 58:
+  case 58: //ipv6 ICMP
     tlen = 8;
     break;
   }
@@ -107,7 +112,11 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   }
 
   switch(protocol){
+  case 0:
+    //ARP, does not get counted
+    break;
   case 1:
+    std::cout << COUNT << std::endl;
     results->giveICMPLength(tlen);
     break;
   case 6:
