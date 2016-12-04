@@ -29,6 +29,19 @@ resultsC::resultsC() {
   iPv4Max = 0;
   iPv6Max = 0;
   arpMax = 0;
+  tcpCount = 0;
+  udpCount = 0;
+  icmpCount = 0;
+  otherTransportCount = 0;
+  tcpSum = 0;
+  udpSum = 0;
+  icmpSum = 0;
+  tcpMin = 9999999;
+  udpMin = 9999999;
+  icmpMin = 9999999;
+  tcpMax = 0;
+  udpMax = 0;
+  icmpMax = 0;
 }
 
 void resultsC::giveIPv4Length(int length) {
@@ -64,6 +77,38 @@ void resultsC::giveARPLength(int length) {
   arpCount++;
 }
 
+void resultsC::giveUDPLength(int length) {
+  if(length > udpMax){
+    udpMax = length;
+  }
+  if(length < udpMin){
+    udpMin = length;
+  }
+  udpSum += length;
+  udpCount++;
+}
+
+void resultsC::giveICMPLength(int length) {
+  if(length > icmpMax){
+    icmpMax = length;
+  }
+  if(length < icmpMin){
+    icmpMin = length;
+  }
+  icmpSum += length;
+  icmpCount++;
+}
+
+void resultsC::giveTCPLength(int length) {
+  if(length > tcpMax){
+    tcpMax = length;
+  }
+  if(length < tcpMin){
+    tcpMin = length;
+  }
+  tcpSum += length;
+  tcpCount++;
+}
 
 // ***************************************************************************
 // * displayResults:
@@ -81,6 +126,12 @@ void resultsC::displayResults() {
   std::cout << "IPv6- Count: " << iPv6Count << "   Min: " << iPv6Min << "   Max: " << iPv6Max << "   Avg: " << (iPv6Count != 0 ? double(iPv6Sum) / double(iPv6Count) : 0) << std::endl;
   std::cout << "ARP- Count: " << arpCount << "   Min: " << arpMin << "   Max: " << arpMax << "   Avg: " << (arpCount != 0 ? double(arpSum) / double(arpCount) : 0) << std::endl;
   std::cout << "Number of other packets: " << otherNetworkCount << std::endl;
+  std::cout << std::endl;
+  std::cout << "--------------- Transport Layer -----------------" << std::endl;
+  std::cout << "TCP- Count: " << tcpCount << "   Min: " << tcpMin << "   Max: " << tcpMax << "   Avg: " << (tcpCount != 0 ? double(tcpSum) / double(tcpCount) : 0) << std::endl;
+  std::cout << "UDP- Count: " << udpCount << "   Min: " << udpMin << "   Max: " << udpMax << "   Avg: " << (udpCount != 0 ? double(udpSum) / double(udpCount) : 0) << std::endl;
+  std::cout << "ICMP- Count: " << icmpCount << "   Min: " << icmpMin << "   Max: " << icmpMax << "   Avg: " << (icmpCount != 0 ? double(icmpSum) / double(icmpCount) : 0) << std::endl;
+  std::cout << "Number of other transport packets: " << otherTransportCount << std::endl;
   std::cout << std::endl;
   std::cout << "A total of " << totalPacketCount << " packets processed." << std::endl;
 }

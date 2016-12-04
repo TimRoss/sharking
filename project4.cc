@@ -23,62 +23,65 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   int b12 = 0;
   int b13 = 0;
   int len = 0;
+  int tlen = 0;
   int ethernetHeaderLength = 100;
   char etherType = 'o';
+  int protocol = 0;
   int lenTypeSum; // length vs Type field sum
 
-  //loop through all captured data for packet
-  for(int i = 0; i < pkthdr->caplen; i++){
-    switch(i){
-    case 12:
-      b12 = int(*packet);
-      break;
-    case 13:
-      b13 = int(*packet);
-      break;
-    }
-    if(i == 13){
-      lenTypeSum = b12 * 256 + b13;
-    }
-    if(lenTypeSum <= 1500){ // 802.3
-      //not really sure which bytes contain codes here
-    }
-    else if(lenTypeSum >= 1536){ // find type for ethernet II
-      ethernetHeaderLength = 14;
-      if(b12 == 8){
-	if(b13 == 0){ //IPv4
-	  etherType = '4';
-	}
-	else if(b13 == 6){ //ARP
-	  etherType = 'a';
-	}
-      }
-      else if(b12 == 134){ 
-	if(b13 == 221){ //IPv6
-	  etherType = '6';
-	}
-      }
-    }
 
-    //get length
-    switch(etherType){
-    case '4':    
-      if(i == ethernetHeaderLength + 2 || i == ethernetHeaderLength + 3){
-	len += i == ethernetHeaderLength + 2 ? int(*packet) * 256 : int(*packet);
-      }
-      break;
-    case '6':
-      if(i == ethernetHeaderLength + 4 || i == ethernetHeaderLength + 5){
-	len += i == ethernetHeaderLength + 4 ? int(*packet) * 256 : int(*packet);
-      }
-      break;
-    case 'a':
-      len = 60; // i think all ARP packets are 60 bytes in length
-      break;
-    }
-    
-    packet++;
+  lenTypeSum = int(packet[12]) * 256 + int(packet[13]);
+
+  if(lenTypeSum <= 1500){ // 802.3
+    //not really sure yet
   }
+  else if(lenTypeSum >= 1536){
+    ethernetHeaderLength = 14;
+    if(int(packet[12]) == 8){
+      if(int(packet[13]) == 0){ // IPv4
+	etherType = '4';
+      }
+      else if(int(packet[13]) == 6){ // ARP
+	etherType = 'a';
+      }
+    }
+    else if(int(packet[12]) == 134){
+      if(int(packet[13]) == 221){ //IPv6
+	etherType = '6';
+      }
+    }
+  }
+
+  switch(etherType){
+  case '4':
+    len = int(packet[ethernetHeaderLength + 2]) * 256 + int(packet[ethernetHeaderLength + 3]);
+    protocol = int(packet[ethernetHeaderLength + 9]);
+    break;
+  case '6':
+    len = int(packet[ethernetHeaderLength + 4]) * 256 + int(packet[ethernetHeaderLength + 5]);
+    protocol = int(packet[ethernetHeaderLength + 7]);
+    break;
+  case 'a':
+    len = 60;
+    protocol =17;
+    break; 
+  }
+
+  switch(protocol){
+  case 1:
+    tlen = 5;
+    break;
+  case 6:
+    tlen = 6;
+    break;
+  case 17:
+    tlen = 7;
+    break;
+  case 58:
+    tlen = 8;
+    break;
+  }
+
 
   //increment ethernetII vs 802.3
   if(lenTypeSum >= 1536){
@@ -92,8 +95,7 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   case 'o':
     results->incrementOtherNetworkCount();
     break;
-  case '4':
-    
+  case '4':    
     results->giveIPv4Length(len);
     break;
   case '6':
@@ -101,6 +103,21 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     break;
   case 'a':
     results->giveARPLength(len);
+    break;
+  }
+
+  switch(protocol){
+  case 1:
+    results->giveICMPLength(tlen);
+    break;
+  case 6:
+    results->giveTCPLength(tlen);
+    break;
+  case 17:
+    results->giveUDPLength(tlen);
+    break;
+  case 58:
+    results->giveICMPLength(tlen);
     break;
   }
 

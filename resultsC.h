@@ -32,6 +32,21 @@ class resultsC {
    int iPv6Max;
    int arpMax;
 
+   //transport layer
+   int tcpCount;
+   int udpCount;
+   int icmpCount;
+   int otherTransportCount;
+   int tcpSum;
+   int udpSum;
+   int icmpSum;
+   int tcpMax;
+   int udpMax;
+   int icmpMax;
+   int tcpMin;
+   int udpMin;
+   int icmpMin;
+
 
   public:
    resultsC();
@@ -47,6 +62,11 @@ class resultsC {
    void giveIPv6Length(int length);
    void giveARPLength(int length);
 
+   //transport layer
+   void incrementOtherTransportCount() { otherTransportCount++; };
+   void giveTCPLength(int length);
+   void giveUDPLength(int length);
+   void giveICMPLength(int length);
    
    void displayResults();
 };
