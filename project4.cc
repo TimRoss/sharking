@@ -27,6 +27,8 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   char etherType = 'o';
   int protocol = -1;
   int lenTypeSum; // length vs Type field sum
+  int byte; // used to store byte info to extract bit info
+  string ipv6IP; // used to store ipv6IP before putting it into IP sets
 
   // Data Link Layer
   lenTypeSum = int(packet[12]) * 256 + int(packet[13]);
@@ -34,7 +36,7 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   if(lenTypeSum <= 1500){ // 802.3
     //not really sure yet
   }
-  else if(lenTypeSum >= 1536){
+  else if(lenTypeSum >= 1536){ //Ethernet II
     ethernetHeaderLength = 14;
     if(int(packet[12]) == 8){
       if(int(packet[13]) == 0){ // IPv4
@@ -57,11 +59,30 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     len = int(packet[ethernetHeaderLength + 2]) * 256 + int(packet[ethernetHeaderLength + 3]);
     protocol = int(packet[ethernetHeaderLength + 9]);
     networkHeaderLength = ethernetHeaderLength + (int(packet[ethernetHeaderLength]) % 16);
+    //part two - getting ipv4 IP addresses
+    results->insertSourceIP("" + packet[ethernetHeaderLength + 12] + packet[ethernetHeaderLength + 13] + packet[ethernetHeaderLength + 14] + packet[ethernetHeaderLength + 15]);
+    results->insertDestinationIP("" + packet[ethernetHeaderLength + 16] + packet[ethernetHeaderLength + 17] + packet[ethernetHeaderLength + 18] + packet[ethernetHeaderLength + 19]);
+    // getting more fragments flag
+    byte = packet[ethernetHeaderLength + 6];
+    byte = byte % 64;
+    if(byte >= 32){
+      results->incrementFragCount();
+    }
     break;
   case '6': //ipv6
     len = int(packet[ethernetHeaderLength + 4]) * 256 + int(packet[ethernetHeaderLength + 5]);
     protocol = int(packet[ethernetHeaderLength + 6]);
     networkHeaderLength = ethernetHeaderLength + 40;
+    //part two - getting ipv6 IP addresses
+    for(int i = 9; i <= 24; i++){
+      ipv6IP += packet[ethernetHeaderLength + i];
+    }
+    results->insertSourceIP(ipv6IP);
+    ipv6IP = "";
+    for(int i = 25; i <= 40; i++){
+      ipv6IP += packet[ethernetHeaderLength + i];
+    }
+    results->insertDestinationIP(ipv6IP);
     break;
   case 'a': //arp
     len = 60;
@@ -71,7 +92,6 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
   }
 
   // Transport Layer
-
   switch(protocol){
   case 0: //ARP
     break;
@@ -80,9 +100,32 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     break;
   case 6: //TCP
     tlen = len - (int(packet[networkHeaderLength + 12]) - (int(packet[networkHeaderLength + 12]) % 16)) / 4;
+    //part two - getting TCP port numbers
+    results->insertSourceTCPPort(packet[networkHeaderLength] * 256 + packet[networkHeaderLength + 1]);
+    results->insertDestinationTCPPort(packet[networkHeaderLength + 2] * 256 + packet[networkHeaderLength + 3]);
+    //getting SYN and FIN
+    byte = packet[networkHeaderLength + 13];
+    byte = byte % 4;
+    switch(byte){
+    case 0: // neither set
+      break;
+    case 1: // only fin set
+      results->incrementFinCount();
+      break;
+    case 2: // only syn set
+      results->incrementSynCount();
+      break;
+    case 3: // both syn and fin set
+      results->incrementFinCount();
+      results->incrementSynCount();
+      break;
+    }
     break;
   case 17: //UDP
     tlen = len - 8;
+    // part two - getting UDP port numbers
+    results->insertSourceUDPPort(packet[networkHeaderLength] * 256 + packet[networkHeaderLength + 1]);
+    results->insertDestinationUDPPort(packet[networkHeaderLength + 2] * 256 + packet[networkHeaderLength + 3]);
     break;
   case 58: //ipv6 ICMP
     tlen = len - 8;
@@ -118,7 +161,6 @@ void pk_processor(u_char *user, const struct pcap_pkthdr *pkthdr, const u_char *
     //ARP, does not get counted
     break;
   case 1:
-    std::cout << COUNT << std::endl;
     results->giveICMPLength(tlen);
     break;
   case 6:

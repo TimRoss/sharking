@@ -11,6 +11,8 @@
 #include <set>
 #include <math.h>
 
+using namespace std;
+
 class resultsC {
   protected:
    int totalPacketCount;
@@ -52,12 +54,31 @@ class resultsC {
 
    std::set<long double> mac; //source mac addresses
    std::set<long double> cheese; //destination mac addresses
+   std::set<string> srcIP;
+   std::set<string> dstIP;
+   std::set<int> srcUDP;
+   std::set<int> dstUDP;
+   std::set<int> srcTCP;
+   std::set<int> dstTCP;
+   int syn;
+   int fin;
+   int frag;
 
 
   public:
    resultsC();
    void incrementPacketCount() { totalPacketCount++; };
-   void insertSourceMAC(long cheese) { mac.insert(cheese); };
+   void insertSourceMAC(long double cheese) { mac.insert(cheese); };
+   void insertSourceIP(string ip) {srcIP.insert(ip); };
+   void insertDestinationIP(string ip) {dstIP.insert(ip); };
+   void insertSourceUDPPort(int port) {srcUDP.insert(port);};
+   void insertDestinationUDPPort(int port) {dstUDP.insert(port);};
+   void insertSourceTCPPort(int port) {srcTCP.insert(port);};
+   void insertDestinationTCPPort(int port) {dstTCP.insert(port);};
+   void incrementSynCount() {syn++;};
+   void incrementFinCount() {fin++;};
+   void incrementFragCount() {frag++;};
+   
    int getSize() { return cheese.size(); };
    void insertDestinationMAC(long mac) { cheese.insert(mac); };
 

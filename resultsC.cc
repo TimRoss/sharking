@@ -136,5 +136,14 @@ void resultsC::displayResults() {
   std::cout << "--------------- Part Two ----------------------" << std::endl;
   std::cout << "Number of unique Source MAC Addresses: " << mac.size() << std::endl;
   std::cout << "Number of unique Destinaction MAC Addresses: " << cheese.size() << std::endl;
+  std::cout << "Number of unique Source IP Addresses: " << srcIP.size() << std::endl;
+  std::cout << "Number of unique Destinaction IP Addresses: " << dstIP.size() << std::endl;
+  std::cout << "Number of unique Source UDP Port Numbers: " << srcUDP.size() << std::endl;
+  std::cout << "Number of unique Destinaction UDP Port Numbers: " << dstUDP.size() << std::endl;
+  std::cout << "Number of unique Source TCP Port Numbers: " << srcTCP.size() << std::endl;
+  std::cout << "Number of unique Destination TCP Port Numbers: " << dstTCP.size() << std::endl;
+  std::cout << "Number of SYN packets seen: " << syn << std::endl;
+  std::cout << "Number of FIN packets seen: " << fin << std::endl;
+  std::cout << "Number of fragmented packets: " << frag << std::endl;
   std::cout << "A total of " << totalPacketCount << " packets processed." << std::endl;
 }
