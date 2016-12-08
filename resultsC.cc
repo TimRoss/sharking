@@ -42,6 +42,9 @@ resultsC::resultsC() {
   tcpMax = 0;
   udpMax = 0;
   icmpMax = 0;
+  syn = 0;
+  fin = 0;
+  frag = 0;
 }
 
 void resultsC::giveIPv4Length(int length) {
